@@ -9,7 +9,7 @@ A voice-first tool for adults 65+: the primary user speaks an issue, AI turns it
 - **Backend:** Python 3 + FastAPI, JWT auth, SQLAlchemy 2.0 async + asyncpg
 - **Frontend:** React + Vite
 - **Database:** Postgres
-- **LLM:** Google Gemini (`gemini-2.0-flash`) via `google-generativeai`
+- **LLM:** Google Gemini (`gemini-3.1-flash-lite`) via `google-generativeai`
 - **Email:** Resend via `resend`
 - **Deploy target:** Render
 
