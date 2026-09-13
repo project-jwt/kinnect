@@ -25,7 +25,7 @@ import './SetupTutorial.css';
 const SLIDES = [
   {
     id: 'welcome',
-    title: 'Welcome to J.W.T',
+    title: 'Welcome to Kinnect',
     body: 'This app helps you share how you’re doing with the people who care about you. Here’s a quick look around.',
   },
   {

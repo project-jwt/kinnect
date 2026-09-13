@@ -214,7 +214,7 @@ export default function App() {
           present (and therefore active) attribute. */}
       <div className="app-shell" inert={showTutorial ? '' : undefined}>
         <header className="app-header">
-          <span className="app-title">J.W.T</span>
+          <span className="app-title">Kinnect</span>
           <div className="app-header__actions">
             <button type="button" onClick={() => setView('profile')}>Profile</button>
             <button type="button" onClick={handleLogout}>Log out</button>

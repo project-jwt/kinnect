@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     # .env / the Render dashboard. Defaults to Resend's sandbox sender so local
     # dev and CI boot with no extra setup — but the sandbox only delivers to
     # the account owner, so real recipients need the verified-domain value.
-    email_sender: str = "J.W.T <onboarding@resend.dev>"
+    email_sender: str = "Kinnect <onboarding@resend.dev>"
 
     # Blank works until the AI-draft route is called — it 502s per request
     # without a key, which is visible enough for a dev-only feature gap.

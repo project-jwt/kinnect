@@ -11,7 +11,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
     <div className="landing">
       {/* Header — same logo + login affordance as the app shell */}
       <header className="landing__header">
-        <span className="landing__logo">J.W.T</span>
+        <span className="landing__logo">Kinnect</span>
         <button type="button" className="landing__login" onClick={onLogin}>
           Log in
         </button>
@@ -28,7 +28,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
           </h1>
           <p className="landing__subtitle">
             When something feels wrong, you shouldn&apos;t have to fight with an
-            app to get help. J.W.T gets you to a real person, family or a
+            app to get help. Kinnect gets you to a real person, family or a
             helpline, faster.
           </p>
           <button
@@ -81,7 +81,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             becomes a real problem.
           </p>
           <p className="landing__body">
-            J.W.T skips the chatbot and the confusing screens. You just say
+            Kinnect skips the chatbot and the confusing screens. You just say
             what&apos;s going on, out loud, and it quietly does the work of
             turning that into something a real person can act on.
           </p>
@@ -197,7 +197,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
       </main>
 
       {/* Footer */}
-      <footer className="landing__footer">© 2026 J.W.T</footer>
+      <footer className="landing__footer">© 2026 Kinnect</footer>
     </div>
   );
 }
