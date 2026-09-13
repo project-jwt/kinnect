@@ -1,8 +1,8 @@
 # Care Infrastructure Application
 
-J.W.T — "Speak your problem. We'll turn it into something your family or a helpline can actually act on."
+Kinnect — "Speak your problem. We'll turn it into something your family or a helpline can actually act on."
 
-A voice-first tool for adults 65+: the primary user speaks an issue, AI turns it into a reviewable summary, and the user sends it to a trusted contact or reaches a pre-loaded helpline. See `J.W.T — Product Specification.pdf` for the full spec.
+A voice-first tool for adults 65+: the primary user speaks an issue, AI turns it into a reviewable summary, and the user sends it to a trusted contact or reaches a pre-loaded helpline. See `Kinnect — Product Specification.pdf` for the full spec.
 
 ## Stack
 

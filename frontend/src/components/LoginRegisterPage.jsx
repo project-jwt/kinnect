@@ -40,7 +40,7 @@ export default function LoginRegisterPage({ onAuth, initialMode = 'login', onBac
           ← Back
         </button>
       )}
-      <h1>J.W.T</h1>
+      <h1>Kinnect</h1>
       <p className="tagline">
         Speak your problem. We&apos;ll turn it into something your family or a
         helpline can actually act on.
