@@ -132,6 +132,19 @@ input {
   margin: 0;
 }
 
+/* A caution, not a failure: the form still submits. Distinguished from
+   .form-error by tone AND by wording, since colour alone carries nothing to a
+   screen reader — the text says what will happen either way. */
+.auth-warning {
+  color: #7a4b00;
+  background: #fff6e5;
+  border-left: 4px solid #b06f00;
+  padding: 12px;
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.4;
+}
+
 .mode-toggle {
   margin-top: 24px;
   background: none;

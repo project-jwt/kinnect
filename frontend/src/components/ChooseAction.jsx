@@ -22,8 +22,11 @@
 import { useEffect, useState } from 'react';
 import { listContacts } from '../adapters/contacts-adapters';
 import { sendSummary } from '../adapters/summaries-adapters';
-import { displayName } from '../utils';
+import { displayName, isInvited, rowKey } from '../utils';
 import './ChooseAction.css';
+
+// Invited people have no contactId, so there is nothing the send endpoint
+// could accept for them — they're shown for continuity, never selectable.
 
 export default function ChooseAction({ summaryId, onNavigate, onBusyChange }) {
   const [mode, setMode] = useState('choose'); // choose | pick-contacts | sent
@@ -60,8 +63,9 @@ export default function ChooseAction({ summaryId, onNavigate, onBusyChange }) {
   };
 
   const toggleContact = (contactId) => {
-    setSelectedIds((ids) => {
-      const next = new Set(ids);
+    if (!contactId) return; // an invited row — nothing to send to yet
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
       if (next.has(contactId)) next.delete(contactId);
       else next.add(contactId);
       return next;
@@ -198,13 +202,14 @@ export default function ChooseAction({ summaryId, onNavigate, onBusyChange }) {
           <p className="choose-action__hint">Pick one or more people.</p>
           <ul className="choose-action__list">
             {contacts.map((c) => (
-              <li key={c.contactId}>
+              <li key={rowKey(c)}>
                 {/* The whole card is the tap target; the checkbox rides
                     along inside the label. */}
                 <label
                   className={
                     'choose-action__contact' +
-                    (selectedIds.has(c.contactId) ? ' choose-action__contact--selected' : '')
+                    (selectedIds.has(c.contactId) ? ' choose-action__contact--selected' : '') +
+                    (isInvited(c) ? ' choose-action__contact--invited' : '')
                   }
                 >
                   <input
@@ -212,11 +217,18 @@ export default function ChooseAction({ summaryId, onNavigate, onBusyChange }) {
                     className="choose-action__checkbox"
                     checked={selectedIds.has(c.contactId)}
                     onChange={() => toggleContact(c.contactId)}
-                    disabled={isBusy}
+                    disabled={isBusy || isInvited(c)}
                   />
                   <span className="choose-action__contact-text">
                     <span className="choose-action__contact-name">{displayName(c)}</span>
                     <span className="choose-action__contact-email">{c.email}</span>
+                    {/* Words, not just the dimming — colour alone would be
+                        invisible to a screen reader. */}
+                    {isInvited(c) && (
+                      <span className="choose-action__contact-badge">
+                        Invited &middot; can&rsquo;t receive summaries yet
+                      </span>
+                    )}
                   </span>
                 </label>
               </li>
@@ -224,6 +236,15 @@ export default function ChooseAction({ summaryId, onNavigate, onBusyChange }) {
           </ul>
         </>
       )}
+
+      {contacts !== null &&
+        contacts.length > 0 &&
+        contacts.every(isInvited) && (
+          <p className="choose-action__hint">
+            Everyone on your list is still waiting to join. Once they create
+            their account, you can send them summaries.
+          </p>
+        )}
 
       <p className="choose-action__status" role="status" aria-live="polite">
         {statusText}

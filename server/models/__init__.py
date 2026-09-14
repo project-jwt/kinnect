@@ -4,4 +4,10 @@
 # ADDING A MODEL? Add its import below or create_all will silently skip its
 # table — "why is my table missing" is almost always a missing import here.
 
-from models import contact_model, helpline_model, summary_model, user_model  # noqa: F401
+from models import (  # noqa: F401
+    contact_model,
+    helpline_model,
+    invite_model,
+    summary_model,
+    user_model,
+)

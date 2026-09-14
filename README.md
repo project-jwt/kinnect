@@ -89,13 +89,14 @@ care-infrastructure/
 │   │   ├── user_model.py                 # users table
 │   │   ├── summary_model.py              # summaries + summary_recipients
 │   │   ├── contact_model.py              # trusted_contact_links
+│   │   ├── invite_model.py               # contact_invites — pending invitations to unregistered emails
 │   │   └── helpline_model.py             # helplines
 │   │
 │   ├── schemas/                          # Pydantic request/response models (the new layer vs Express)
 │   │   ├── auth.py                       # RegisterIn, LoginIn, AuthOut
 │   │   ├── user.py                       # UserOut, UserUpdate
 │   │   ├── summary.py                    # DraftIn/Out, SummaryCreate/Out, SendIn/Out
-│   │   ├── contact.py                    # ContactCreate/Update/Out
+│   │   ├── contact.py                    # ContactCreate/Update/Out, InviteUpdate
 │   │   └── helpline.py                   # HelplineOut
 │   │
 │   ├── dependencies/                     # FastAPI Depends() — replaces middleware for per-route concerns
@@ -105,7 +106,7 @@ care-infrastructure/
 │   ├── core/
 │   │   ├── security.py                   # password hashing (bcrypt) + JWT encode/decode
 │   │   ├── ai.py                         # Gemini client + draft_summary(transcript, answers)
-│   │   └── email.py                      # Resend client + send_summary_email(to, summary_text)
+│   │   └── email.py                      # Resend client + summary and contact-invitation emails
 │   │
 │   └── db/
 │       ├── base.py                       # SQLAlchemy DeclarativeBase every model inherits from

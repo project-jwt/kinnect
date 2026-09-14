@@ -21,7 +21,15 @@ from db.migrations import run_startup_migrations
 # models/__init__.py imports each model module, so new models added there
 # are picked up by create_all with no change to this file.
 import models  # noqa: F401
-from routers import auth, contacts, helplines, received_summaries, summaries, users
+from routers import (
+    auth,
+    contacts,
+    helplines,
+    invitations,
+    received_summaries,
+    summaries,
+    users,
+)
 
 
 @asynccontextmanager
@@ -48,6 +56,7 @@ app = FastAPI(title="Care Infrastructure API", lifespan=lifespan)
 app.include_router(auth.router, prefix="/api")
 app.include_router(contacts.router, prefix="/api")
 app.include_router(helplines.router, prefix="/api")
+app.include_router(invitations.router, prefix="/api")
 app.include_router(received_summaries.router, prefix="/api")
 app.include_router(summaries.router, prefix="/api")
 app.include_router(users.router, prefix="/api")

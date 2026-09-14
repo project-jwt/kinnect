@@ -5,17 +5,21 @@
 # Validation lives in schemas, hashing/tokens in core/security, queries in the
 # model, session plumbing in dependencies. Handlers are just the wiring.
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security import create_access_token, hash_password
 from dependencies.db import get_db
-from models import user_model
+from models import invite_model, user_model
 from schemas.auth import AuthOut, LoginIn, RegisterIn
 
 # Like an express.Router(). main.py mounts this under /api -> /api/auth/*.
 router = APIRouter(prefix="/auth", tags=["auth"])  # tags group it in the auto-docs
+
+logger = logging.getLogger(__name__)
 
 
 @router.post("/register", response_model=AuthOut, status_code=201)
@@ -41,6 +45,29 @@ async def register(body: RegisterIn, session: AsyncSession = Depends(get_db)):
         # Race: two same-email registrations can both pass the check above; the
         # DB's UNIQUE constraint catches the loser — translate to the same 409.
         raise HTTPException(status_code=409, detail="Email already registered")
+
+    # A brand-new contact may already have been invited by one or more primary
+    # users. Convert those pending invites into real links now, so they show up
+    # on the inviter's list as usable (un-greyed) without a second step.
+    if user.role == "contact":
+        try:
+            await invite_model.accept_for_user(session, user)
+        except Exception:
+            # Deliberately swallowed: a stale or broken invite row must never
+            # stop someone from creating an account. The account is already
+            # committed; the inviter simply keeps seeing a pending invite,
+            # which they can cancel and re-send.
+            #
+            # What makes swallowing actually safe is db/engine.py's
+            # expire_on_commit=False. If accept_for_user died mid-commit, this
+            # session needs a rollback before it can be used again — and with
+            # the default expire_on_commit=True, `user`'s attributes would be
+            # marked stale, so serializing AuthOut(user=user) below would
+            # trigger a re-SELECT on that session and 500: the guard would fail
+            # the very registration it exists to protect. The flag keeps the
+            # already-loaded values readable, so no query happens here.
+            logger.exception("accepting contact invites failed for user %s", user.id)
+
     # Newly registered = logged in: mint their first token right away.
     return AuthOut(token=create_access_token(user.id, user.role), user=user)
 

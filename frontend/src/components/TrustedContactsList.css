@@ -223,3 +223,22 @@
   outline: 3px solid #1a5276;
   outline-offset: 3px;
 }
+
+/* An invited person: on the list, but not yet usable. Dimmed AND labelled —
+   the badge carries the meaning on its own, because colour alone is invisible
+   to a screen reader and easy to miss in sunlight on a phone. */
+.trusted-contacts__item--invited {
+  opacity: 0.65;
+  border-style: dashed;
+}
+
+.trusted-contacts__item-badge {
+  display: block;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+/* Dimming must not weaken the focus ring — this row is still tappable. */
+.trusted-contacts__item--invited:focus-visible {
+  opacity: 1;
+}

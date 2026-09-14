@@ -156,6 +156,17 @@
   cursor: not-allowed;
 }
 
+/* Same treatment as the contacts list: dimmed and labelled, never colour
+   alone. These rows are disabled, so they take no focus ring. */
+.choose-action__contact--invited {
+  opacity: 0.65;
+}
+
+.choose-action__contact-badge {
+  display: block;
+  font-style: italic;
+}
+
 .choose-action__back:focus-visible,
 .choose-action__contact:focus-within,
 .choose-action__primary:focus-visible,

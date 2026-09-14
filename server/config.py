@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     # the account owner, so real recipients need the verified-domain value.
     email_sender: str = "Kinnect <onboarding@resend.dev>"
 
+    # Where the app is reachable, used to build the signup link in an invite
+    # email. Production sets this to the deployed origin (the API serves the
+    # built frontend, so it's the same origin as the API); the default is the
+    # Vite dev server so local invites are clickable with no extra setup.
+    app_base_url: str = "http://localhost:5173"
+
     # Blank works until the AI-draft route is called — it 502s per request
     # without a key, which is visible enough for a dev-only feature gap.
     gemini_api_key: str = ""
