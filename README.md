@@ -1,17 +1,42 @@
-# Care Infrastructure Application
+# Kinnect
 
-Kinnect — "Speak your problem. We'll turn it into something your family or a helpline can actually act on."
+> "Speak your problem. We'll turn it into something your family or a helpline can actually act on."
 
-A voice-first tool for adults 65+: the primary user speaks an issue, AI turns it into a reviewable summary, and the user sends it to a trusted contact or reaches a pre-loaded helpline. See `Kinnect — Product Specification.pdf` for the full spec.
+Banking, healthcare, and even everyday errands have moved into apps and websites that are confusing to navigate, and scammers know it. When something feels wrong, many older adults freeze: they aren't sure what happened, who to ask, or how to explain it. Kinnect was created to remove that barrier. Instead of a chatbot or a maze of screens, the user presses one button and says what's going on in their own words.
 
-## Stack
+Kinnect is a voice-first app for two kinds of users:
 
-- **Backend:** Python 3 + FastAPI, JWT auth, SQLAlchemy 2.0 async + asyncpg
-- **Frontend:** React + Vite
-- **Database:** Postgres
-- **LLM:** Google Gemini (`gemini-3.1-flash-lite`) via `google-generativeai`
-- **Email:** Resend via `resend`
-- **Deploy target:** Render
+- **Primary users** — adults 65+ who need help. They speak an issue, the app asks guiding questions if something important is missing, and AI turns it into a clear, editable summary they can send to someone they trust or bring to a pre-loaded helpline.
+- **Trusted Contacts** — family members or close friends who receive those summaries by email and in their own dashboard, so they can step in quickly with the full picture.
+
+## MVPs
+
+MVP (80/20) → User/Trusted Contacts (family or close friends)
+
+1. As a User, I can login/register as either a "Primary" or a "Contact", manage my account, and can see my respective view (Primary/Contact).
+2. As a User, I can utilize speech to text by pressing a single button to provide a summary of what their issues are to the app. If not enough context is given, the app will ask guiding questions. An AI-generated summary can be chosen to be given to trusted contacts as an email notification.
+3. The user can edit the summary before or after it is sent, see a list of past summaries, and delete a summary.
+4. As a User, I can reach pre-loaded helplines for assistance in scam identification (877-908-3360 AARP helpline Mon-Fri 8am to 8pm ET).
+5. As a Primary user, I can see a list of my trusted contacts, add them by email, edit their nickname and relationship, and remove them.
+6. As a User, I can see a Setup page at initial login informing me what the app is for and a tutorial on how to use it.
+
+### Stretch Features
+
+1. The setup page will have links to different sources about scams.
+2. As a trusted contact, I receive a periodic digest notification in their preferred language through the app summarizing the user's flagged issues, instead of a live activity feed so I can stay informed without it feeling like surveillance.
+3. As a User, I can select different languages to accommodate my needs (popup on first start so the user can immediately understand the interface) and have the option to change language within the app as well.
+
+## Tech Stack
+
+- **Frontend:** React 18 + Vite 5
+- **Backend:** Python 3.11+ / FastAPI, Pydantic + pydantic-settings
+- **Database:** PostgreSQL via SQLAlchemy 2.0 (async) + asyncpg
+- **Auth:** JWT (`python-jose`) + bcrypt password hashing (`passlib`)
+- **AI summaries:** Google Gemini (`gemini-3.1-flash-lite`) via `google-generativeai`
+- **Speech-to-text:** browser Web Speech API on desktop; on mobile/iOS the app records with MediaRecorder and transcribes with Deepgram (`nova-2`)
+- **Email:** Resend
+- **Testing:** pytest + pytest-asyncio + httpx + aiosqlite (server); `node --test` (frontend)
+- **Deploy:** Render — a single service where FastAPI serves the API under `/api` and the built `frontend/dist`
 
 ## Local development
 
@@ -25,7 +50,7 @@ python3 -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-cp .env.example .env             # then fill in DATABASE_URL, JWT_SECRET, and RESEND_API_KEY
+cp .env.example .env             # then fill in DATABASE_URL, JWT_SECRET, RESEND_API_KEY, GEMINI_API_KEY, and DEEPGRAM_API_KEY
 createdb care_infrastructure     # or create the database named in your DATABASE_URL
 
 uvicorn main:app --reload --port 8000
@@ -43,104 +68,27 @@ npm run dev
 
 Open the Vite URL it prints (`http://localhost:5173`). The dev server proxies every `/api` request to `127.0.0.1:8000`, so the browser talks to a single origin and no CORS setup is needed — but it also means the backend must be running for the app to work.
 
-## Python differences to consider
-
-**1. Pydantic schemas are a required extra layer.** In Express we wrote `if (!username) return res.status(400)` by hand in each controller. In FastAPI, you declare a Pydantic model for the request body and the framework validates it before your handler runs. Same idea for response bodies — declare the shape, FastAPI serializes it. This is the `server/schemas/` folder.
-
-**2. `Depends()` replaces `app.use(middleware)` for per-route concerns.** The old `checkAuthentication` middleware becomes a function like `get_current_user`, and any route that needs auth pulls it in with `user = Depends(get_current_user)`. Cleaner than global middleware because it's obvious from the route signature which endpoints require auth and which don't. This is the `server/dependencies/` folder.
-
-**3. snake_case in Python, camelCase in the API contract.** The DB and Python code use `full_name`, `has_completed_setup`. The JSON payloads use `fullName`, `hasCompletedSetup`. Pydantic handles the translation at the boundary with `alias_generator=to_camel` — you write one line of config on your schema and never touch it again.
-
-## Team workflow
-
-Branches: `pre-prod` is the integration branch — all feature PRs target it. `main` is the stable branch — it only receives promotion PRs from `pre-prod` and is what Render deploys.
-
-1. Move your assigned ticket to **In Progress** on the board.
-2. Branch from fresh `pre-prod`: `git checkout pre-prod && git pull && git checkout -b your-name/feature-name`.
-3. Use [Conventional Commits](https://www.conventionalcommits.org): `feat: …`, `fix: …`, `docs: …`, `chore: …` — with an optional scope like `feat(server): …`.
-4. Open the PR early **to `pre-prod`** (draft is fine), fill out the template, move the ticket to **In Review**.
-5. Tag one teammate for review. Reviews are substantive: ask about unclear code, flag potential breaks, suggest improvements. Reviews are due within 24 hours — anything older gets raised in the daily stand-down.
-6. Reviewer approves → author merges (merge commit) and deletes the branch; ticket to **Done**.
-7. Promotion: when `pre-prod` is stable (at minimum before each deploy milestone), open a PR from `pre-prod` → `main`. `main` must always run; every merge to `main` auto-deploys to Render — check the deploy after merging.
-8. No direct pushes to `main` or `pre-prod` — branch protection blocks them, including for admins.
-
-## File structure
+## File Structure
 
 ```
 care-infrastructure/
-├── README.md
-├── .gitignore                            # Python + Node ignores
-├── LICENSE
+├── .github/
 │
-├── server/                               # FastAPI app
-│   ├── main.py                           # builds the FastAPI app and registers every router under /api
-│   ├── config.py                         # Settings loaded from .env (DB url, JWT secret/alg/expiry, Gemini + Resend keys)
-│   ├── requirements.txt                  # backend Python dependencies
-│   │
-│   ├── routers/                          # HTTP handlers — one file per resource (same idea as "controllers")
-│   │   ├── auth.py                       # /api/auth/register, /api/auth/login
-│   │   ├── users.py                      # /api/users/me, /api/users/me/setup
-│   │   ├── summaries.py                  # /api/summaries/* (primary only)
-│   │   ├── contacts.py                   # /api/contacts/*
-│   │   ├── received_summaries.py         # /api/received-summaries (contact only)
-│   │   └── helplines.py                  # /api/helplines
-│   │
-│   ├── models/                           # SQLAlchemy declarative models + async query helpers, one file per table group
-│   │   ├── user_model.py                 # users table
-│   │   ├── summary_model.py              # summaries + summary_recipients
-│   │   ├── contact_model.py              # trusted_contact_links
-│   │   └── helpline_model.py             # helplines
-│   │
-│   ├── schemas/                          # Pydantic request/response models (the new layer vs Express)
-│   │   ├── auth.py                       # RegisterIn, LoginIn, AuthOut
-│   │   ├── user.py                       # UserOut, UserUpdate
-│   │   ├── summary.py                    # DraftIn/Out, SummaryCreate/Out, SendIn/Out
-│   │   ├── contact.py                    # ContactCreate/Update/Out
-│   │   └── helpline.py                   # HelplineOut
-│   │
-│   ├── dependencies/                     # FastAPI Depends() — replaces middleware for per-route concerns
-│   │   ├── auth.py                       # get_current_user, require_primary, require_contact
-│   │   └── db.py                         # get_db — yields an AsyncSession per request
-│   │
-│   ├── core/
-│   │   ├── security.py                   # password hashing (bcrypt) + JWT encode/decode
-│   │   ├── ai.py                         # Gemini client + draft_summary(transcript, answers)
-│   │   └── email.py                      # Resend client + send_summary_email(to, summary_text)
-│   │
-│   └── db/
-│       ├── base.py                       # SQLAlchemy DeclarativeBase every model inherits from
-│       ├── engine.py                     # async engine + AsyncSessionLocal factory
-│       └── seed.py                       # creates tables via Base.metadata + inserts seed rows
+├── frontend/                 # React + Vite app
+│   ├── public/               # static assets served as-is
+│   │   └── tutorial/         # illustrations for the setup tutorial slides - not added yet
+│   └── src/
+│       ├── adapters/         # fetch wrappers — one file per API resource
+│       ├── components/       # screens and their styles
+│       ├── hooks/            # speech recognition + audio transcription hooks
+│       └── utils/            # small shared helpers (and their tests)
 │
-└── frontend/                             # React + Vite app
-    ├── package.json                      # dev/build/preview scripts + React/Vite deps
-    ├── vite.config.js                    # proxies /api → http://127.0.0.1:8000
-    ├── index.html                        # Vite entry HTML
-    │
-    └── src/
-        ├── main.jsx                      # React root render
-        ├── App.jsx                       # top-level auth state + role-based routing
-        ├── App.css                       # global styles
-        │
-        ├── adapters/                     # fetch wrappers — one file per resource
-        │   ├── fetch-helpers.js          # shared handleFetch + JWT header injection
-        │   ├── auth-adapters.js          # register / login / logout
-        │   ├── users-adapters.js         # getMe / updateMe / markSetupComplete
-        │   ├── summaries-adapters.js     # draft / save / list / get / update / delete / send
-        │   ├── contacts-adapters.js      # list / add / update / delete
-        │   ├── received-summaries-adapters.js  # listReceivedSummaries
-        │   └── helplines-adapters.js     # listHelplines
-        │
-        └── components/                   # one file per screen from the wireframe
-            ├── LoginRegisterPage.jsx     # role picker + login/register
-            ├── SetupTutorial.jsx         # first-login onboarding
-            ├── PrimaryHome.jsx           # single "speak now" button
-            ├── RecordingPage.jsx         # SpeechRecognition + clarifying-question loop
-            ├── SummaryReview.jsx         # editable summary
-            ├── ChooseAction.jsx          # send-to-contact or call-helpline
-            ├── PastSummaries.jsx         # list + detail / edit / delete
-            ├── TrustedContactsList.jsx   # add / edit / delete
-            ├── HelplinePage.jsx          # AARP one-tap call
-            ├── ContactDashboard.jsx      # read-only received summaries
-            └── BottomNav.jsx             # 3-icon bottom nav
+└── server/                   # FastAPI app
+    ├── core/                 # security, AI (Gemini), email (Resend), transcription (Deepgram)
+    ├── db/                   # declarative base, async engine, seed data
+    ├── dependencies/         # FastAPI Depends() — auth guards, DB session
+    ├── models/               # SQLAlchemy models + query helpers
+    ├── routers/              # HTTP handlers under /api — one file per resource
+    ├── schemas/              # Pydantic request/response models
+    └── tests/                # pytest suite
 ```
